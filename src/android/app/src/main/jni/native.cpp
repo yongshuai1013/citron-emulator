@@ -248,7 +248,7 @@ void EmulationSession::InitializeSystem(bool reload) {
     fs_controller.InitializeContentSystem(*m_vfs);
 }
 
-void EmulationSession::RefreshContentSystemLocked() {
+void EmulationSession::RefreshContentSystem() {
     std::scoped_lock lock(m_mutex);
     auto& fs = m_system.GetFileSystemController();
     if (auto filesystem = m_system.GetFilesystem()) {
@@ -597,7 +597,7 @@ jboolean Java_org_citron_citron_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclas
     if (keys_loaded && !session.IsRunning()) {
         auto& system = session.System();
         if (auto filesystem = system.GetFilesystem(); filesystem != nullptr) {
-            session.RefreshContentSystemLocked();
+            session.RefreshContentSystem();
             refreshed_content = true;
         }
     }
@@ -942,7 +942,7 @@ jboolean Java_org_citron_citron_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, j
     Core::Crypto::KeyManager::Instance().ReloadKeys();
     bool refreshed_content = false;
     if (auto filesystem = system.GetFilesystem(); filesystem != nullptr) {
-        session.RefreshContentSystemLocked();
+        session.RefreshContentSystem();
         refreshed_content = true;
     }
     LOG_INFO(Frontend, "areKeysPresent: refreshed_content={}", refreshed_content);
