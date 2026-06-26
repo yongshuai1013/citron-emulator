@@ -47,7 +47,7 @@
 namespace FileSys {
 namespace {
 // patch_manager.cpp only
-inline const ContentProviderUnion* GetUnionProvider(const ContentProvider& p) {
+    const ContentProviderUnion* GetUnionProvider(const ContentProvider& p) {
     return p.IsUnionProvider()
         ? static_cast<const ContentProviderUnion*>(&p)
         : nullptr;
