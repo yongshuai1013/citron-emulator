@@ -805,6 +805,11 @@ FileSys::VirtualDir FileSystemController::GetBCATDirectory(u64 title_id) const {
 
 void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
+        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::SysNAND);
+        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::UserNAND);
+        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::SDMC);
+        system.ClearContentProvider(FileSys::ContentProviderUnionSlot::External);
+
         bis_factory = nullptr;
         sdmc_factory = nullptr;
         external_provider = nullptr;

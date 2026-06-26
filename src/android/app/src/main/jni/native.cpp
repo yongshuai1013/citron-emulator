@@ -211,6 +211,11 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
 void EmulationSession::InitializeSystem(bool reload) {
     std::scoped_lock lock(m_mutex);
 
+    if (m_is_running || m_load_result == Core::SystemResultStatus::Success) {
+        LOG_ERROR(Frontend, "Refusing to initialize system while emulation is active");
+        return;
+    }
+
     if (!reload) {
         m_system.Initialize();
 
@@ -894,7 +899,12 @@ void Java_org_citron_citron_1emu_NativeLibrary_clearFilesystemProvider(JNIEnv* e
 }
 
 jboolean Java_org_citron_citron_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, jobject jobj) {
-    auto& system = EmulationSession::GetInstance().System();
+    auto& session = EmulationSession::GetInstance();
+    if (session.IsRunning()) {
+        return ContentManager::AreKeysPresent();
+    }
+
+    auto& system = session.System();
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
     Core::Crypto::KeyManager::Instance().ReloadKeys();
     return ContentManager::AreKeysPresent();
