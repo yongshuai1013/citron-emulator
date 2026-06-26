@@ -46,6 +46,7 @@ public:
     const Core::PerfStatsResults& PerfStats();
     void ConfigureFilesystemProvider(const std::string& filepath);
     void InitializeSystem(bool reload);
+    void RefreshContentSystemLocked();
     void SetAppletId(int applet_id);
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath,
                                                  const std::size_t program_index,
