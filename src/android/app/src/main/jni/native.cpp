@@ -209,7 +209,11 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
 }
 
 void EmulationSession::InitializeSystem(bool reload) {
+    std::scoped_lock lock(m_mutex);
+
     if (!reload) {
+        m_system.Initialize();
+
         // Initialize logging system
         Common::Log::Initialize();
         Common::Log::SetColorConsoleBackendEnabled(true);
@@ -588,9 +592,6 @@ jboolean Java_org_citron_citron_1emu_NativeLibrary_isPaused(JNIEnv* env, jclass 
 void Java_org_citron_citron_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz,
                                                             jboolean reload) {
     // Initialize the emulated system.
-    if (!reload) {
-        EmulationSession::GetInstance().System().Initialize();
-    }
     EmulationSession::GetInstance().InitializeSystem(reload);
 }
 

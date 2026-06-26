@@ -838,6 +838,9 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     if (bis_factory == nullptr) {
         bis_factory = std::make_unique<FileSys::BISFactory>(
             nand_directory, std::move(load_directory), std::move(dump_directory));
+    }
+
+    if (bis_factory != nullptr) {
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SysNAND,
                                        bis_factory->GetSystemNANDContents());
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::UserNAND,
@@ -854,6 +857,9 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     if (sdmc_factory == nullptr) {
         sdmc_factory = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory),
                                                               std::move(sd_load_directory));
+    }
+
+    if (sdmc_factory != nullptr) {
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::SDMC,
                                        sdmc_factory->GetSDMCContents());
     }
@@ -868,6 +874,9 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
         }
         external_provider =
             std::make_unique<FileSys::ExternalContentProvider>(std::move(load_dirs));
+    }
+
+    if (external_provider != nullptr) {
         system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::External,
                                        external_provider.get());
     }
