@@ -80,6 +80,8 @@ class ContentProvider {
 public:
     virtual ~ContentProvider();
 
+    virtual bool IsUnionProvider() const { return false; }
+
     virtual void Refresh() = 0;
 
     virtual bool HasEntry(u64 title_id, ContentRecordType type) const = 0;
@@ -233,6 +235,8 @@ class ContentProviderUnion : public ContentProvider {
 public:
     ~ContentProviderUnion() override;
 
+    bool IsUnionProvider() const override { return true; }
+    
     void SetSlot(ContentProviderUnionSlot slot, ContentProvider* provider);
     void SetSlots(
         std::initializer_list<std::pair<ContentProviderUnionSlot, ContentProvider*>> slots);

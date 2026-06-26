@@ -46,6 +46,12 @@
 
 namespace FileSys {
 namespace {
+// patch_manager.cpp only
+inline const ContentProviderUnion* GetUnionProvider(const ContentProvider& p) {
+    return p.IsUnionProvider()
+        ? static_cast<const ContentProviderUnion*>(&p)
+        : nullptr;
+}
 
 constexpr u32 SINGLE_BYTE_MODULUS = 0x100;
 
@@ -172,6 +178,8 @@ bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
 }
 } // Anonymous namespace
 
+
+
 PatchManager::PatchManager(u64 title_id_,
                            const Service::FileSystem::FileSystemController& fs_controller_,
                            const ContentProvider& content_provider_)
@@ -235,8 +243,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
         if (found_best) {
             const auto update_tid = GetUpdateTitleID(title_id);
             if (active_update.is_external) {
-                const auto* content_provider_union =
-                    static_cast<const ContentProviderUnion*>(&content_provider);
+                const auto* content_provider_union = GetUnionProvider(content_provider);
                 if (content_provider_union) {
                     best_update_raw = content_provider_union->GetExternalEntryForVersion(
                         update_tid, ContentRecordType::Program, best_version);
@@ -570,8 +577,7 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         if (found_best) {
             const auto update_tid = GetUpdateTitleID(title_id);
             if (active_update.is_external) {
-                const auto* content_provider_union =
-                    static_cast<const ContentProviderUnion*>(&content_provider);
+                const auto* content_provider_union = GetUnionProvider(content_provider);
                 if (content_provider_union) {
                     best_update_raw =
                         content_provider_union->GetExternalEntryForVersion(update_tid, type,
@@ -705,8 +711,7 @@ std::vector<Patch> PatchManager::GetPatches(VirtualFile update_raw) const {
     const auto update_disabled =
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 
-    const auto* content_provider_union =
-        static_cast<const ContentProviderUnion*>(&content_provider);
+    const auto* content_provider_union = GetUnionProvider(content_provider);
     bool is_nand_control = true;
     bool is_nand_program = true;
     if (content_provider_union) {
@@ -1080,8 +1085,7 @@ PatchManager::ActiveUpdate PatchManager::GetActiveUpdate() const {
     bool is_external = false;
 
     // 1. External Updates
-    const auto* content_provider_union =
-        static_cast<const ContentProviderUnion*>(&content_provider);
+    const auto* content_provider_union = GetUnionProvider(content_provider);
     if (content_provider_union) {
         const auto update_tid = GetUpdateTitleID(title_id);
         const auto updates = content_provider_union->ListExternalUpdateVersions(update_tid);
@@ -1223,8 +1227,7 @@ PatchManager::Metadata PatchManager::GetControlMetadata() const {
     if (active_update.found) {
         const auto update_tid = GetUpdateTitleID(title_id);
         if (active_update.is_external) {
-            const auto* content_provider_union =
-                static_cast<const ContentProviderUnion*>(&content_provider);
+            const auto* content_provider_union = GetUnionProvider(content_provider);
             if (content_provider_union) {
                 auto control_file = content_provider_union->GetExternalEntryForVersion(
                     update_tid, ContentRecordType::Control, active_update.version);
