@@ -248,28 +248,29 @@ void EmulationSession::InitializeSystem(bool reload) {
     fs_controller.InitializeContentSystem(*m_vfs);
 }
 
-void EmulationSession::RefreshContentSystem() {
-    std::scoped_lock lock(m_mutex);
+
+void EmulationSession::RefreshContentSystemUnlocked()
+{
     auto& fs = m_system.GetFileSystemController();
     if (auto filesystem = m_system.GetFilesystem()) {
         fs.InitializeContentSystem(*filesystem);
     }
 }
 
+
+void EmulationSession::RefreshContentSystem() {
+    std::scoped_lock lock(m_mutex);
+    RefreshContentSystemUnlocked();
+}
+
+
 bool EmulationSession::RefreshContentIfIdle(bool keys_loaded)
 {
-    std::scoped_lock lock(m_mutex);
-
     if (!keys_loaded || m_is_running)
         return false;
 
-    auto& system = System();
-    if (auto filesystem = system.GetFilesystem(); filesystem != nullptr) {
-        RefreshContentSystem();
-        return true;
-    }
-
-    return false;
+    RefreshContentSystem();
+    return true;
 }
 
 void EmulationSession::SetAppletId(int applet_id) {

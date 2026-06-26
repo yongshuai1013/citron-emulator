@@ -60,6 +60,7 @@ public:
     static u64 GetProgramId(JNIEnv* env, jstring jprogramId);
 
 private:
+    void RefreshContentSystemUnlocked();
     static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max);
     static void OnEmulationStopped(Core::SystemResultStatus result);
     static void ChangeProgram(std::size_t program_index);
