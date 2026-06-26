@@ -256,6 +256,22 @@ void EmulationSession::RefreshContentSystem() {
     }
 }
 
+bool EmulationSession::RefreshContentIfIdle(bool keys_loaded)
+{
+    std::scoped_lock lock(m_mutex);
+
+    if (!keys_loaded || m_is_running)
+        return false;
+
+    auto& system = System();
+    if (auto filesystem = system.GetFilesystem(); filesystem != nullptr) {
+        RefreshContentSystem();
+        return true;
+    }
+
+    return false;
+}
+
 void EmulationSession::SetAppletId(int applet_id) {
     m_applet_id = applet_id;
     m_system.GetFrontendAppletHolder().SetCurrentAppletId(
@@ -593,17 +609,10 @@ jboolean Java_org_citron_citron_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclas
     Core::Crypto::KeyManager::Instance().ReloadKeys();
     const bool keys_loaded = Core::Crypto::KeyManager::Instance().AreKeysLoaded();
 
-    bool refreshed_content = false;
-    if (keys_loaded && !session.IsRunning()) {
-        auto& system = session.System();
-        if (auto filesystem = system.GetFilesystem(); filesystem != nullptr) {
-            session.RefreshContentSystem();
-            refreshed_content = true;
-        }
-    }
-
-    LOG_INFO(Frontend, "reloadKeys: keys_loaded={}, refreshed_content={}", keys_loaded,
-             refreshed_content);
+    const bool refreshed_content = session.RefreshContentIfIdle(keys_loaded);
+    LOG_INFO(Frontend,
+         "reloadKeys: keys_loaded={}, refreshed_content={}",
+         keys_loaded, refreshed_content);
 
     return static_cast<jboolean>(keys_loaded);
 }
@@ -934,18 +943,15 @@ void Java_org_citron_citron_1emu_NativeLibrary_clearFilesystemProvider(JNIEnv* e
 
 jboolean Java_org_citron_citron_1emu_NativeLibrary_areKeysPresent(JNIEnv* env, jobject jobj) {
     auto& session = EmulationSession::GetInstance();
-    if (session.IsRunning()) {
-        return ContentManager::AreKeysPresent();
-    }
 
-    auto& system = session.System();
     Core::Crypto::KeyManager::Instance().ReloadKeys();
-    bool refreshed_content = false;
-    if (auto filesystem = system.GetFilesystem(); filesystem != nullptr) {
-        session.RefreshContentSystem();
-        refreshed_content = true;
-    }
-    LOG_INFO(Frontend, "areKeysPresent: refreshed_content={}", refreshed_content);
+    const bool keys_loaded =
+        Core::Crypto::KeyManager::Instance().AreKeysLoaded();
+
+    const bool refreshed_content = session.RefreshContentIfIdle(keys_loaded);
+
+    LOG_INFO(Frontend, "areKeysPresent: refreshed_content={!}", refreshed_content);
+
     return ContentManager::AreKeysPresent();
 }
 
