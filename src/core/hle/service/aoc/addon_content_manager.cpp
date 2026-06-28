@@ -98,8 +98,8 @@ IAddOnContentManager::~IAddOnContentManager() {
 }
 
 Result IAddOnContentManager::CountAddOnContent(Out<u32> out_count, ClientProcessId process_id) {
-    LOG_DEBUG(Service_AOC, "called. process_id={}", process_id.pid);
-
+    // LOG_DEBUG(Service_AOC, "called. process_id={}", process_id.pid);
+    LOG_WARNING(Service_AOC, "CountAddOnContent called. process_id={}", process_id.pid);
     const auto current = system.GetApplicationProcessProgramID();
 
     const auto& disabled = Settings::values.disabled_addons[current];
@@ -111,7 +111,9 @@ Result IAddOnContentManager::CountAddOnContent(Out<u32> out_count, ClientProcess
     *out_count = static_cast<u32>(
         std::count_if(add_on_content.begin(), add_on_content.end(),
                       [current](u64 tid) { return CheckAOCTitleIDMatchesBase(tid, current); }));
-
+    LOG_WARNING(Service_AOC,
+                "CountAddOnContent: program_id={:016X}, count={}",
+                current, *out_count);
     R_SUCCEED();
 }
 
@@ -147,6 +149,21 @@ Result IAddOnContentManager::ListAddOnContent(Out<u32> out_count,
     R_UNLESS(out.size() >= offset, ResultUnknown);
 
     *out_count = static_cast<u32>(std::min<size_t>(out.size() - offset, count));
+    LOG_WARNING(Service_AOC,
+            "ListAddOnContent result: base_id={:016X}, matched_total={}, offset={}, "
+            "requested_count={}, returned_count={}, buffer_bytes={}",
+            current, out.size(), offset, count, *out_count, out_addons.size());
+
+    for (u32 i = 0; i < *out_count; ++i) {
+        const auto addon_index = out[offset + i];
+        const auto reconstructed_title_id =
+            FileSys::GetAOCBaseTitleID(current) + addon_index;
+
+        LOG_WARNING(Service_AOC,
+                    "ListAddOnContent output[{}]: addon_index={}, title_id={:016X}",
+                    i, addon_index, reconstructed_title_id);
+    }
+
     std::rotate(out.begin(), out.begin() + offset, out.end());
 
     std::memcpy(out_addons.data(), out.data(), *out_count * sizeof(u32));
@@ -212,8 +229,8 @@ Result IAddOnContentManager::ListAddOnContentByApplicationId(
 
 Result IAddOnContentManager::GetAddOnContentBaseId(Out<u64> out_title_id,
                                                    ClientProcessId process_id) {
-    LOG_DEBUG(Service_AOC, "called. process_id={}", process_id.pid);
-
+    // LOG_DEBUG(Service_AOC, "called. process_id={}", process_id.pid);
+    LOG_WARNING(Service_AOC, "GetAddOnContentBaseId called. process_id={}", process_id.pid);
     const auto title_id = system.GetApplicationProcessProgramID();
     const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                    system.GetContentProvider()};
@@ -221,16 +238,30 @@ Result IAddOnContentManager::GetAddOnContentBaseId(Out<u64> out_title_id,
     const auto res = pm.GetControlMetadata();
     if (res.first == nullptr) {
         *out_title_id = FileSys::GetAOCBaseTitleID(title_id);
+        LOG_WARNING(Service_AOC,
+            "GetAddOnContentBaseId fallback: program_id={:016X}, aoc_base={:016X}",
+            title_id, *out_title_id);
         R_SUCCEED();
     }
 
     *out_title_id = res.first->GetDLCBaseTitleId();
+    LOG_WARNING(Service_AOC,
+            "GetAddOnContentBaseId metadata: program_id={:016X}, aoc_base={:016X}",
+            title_id, *out_title_id);
 
     R_SUCCEED();
 }
 
 Result IAddOnContentManager::PrepareAddOnContent(s32 addon_index, ClientProcessId process_id) {
-    LOG_WARNING(Service_AOC, "(STUBBED) called with addon_index={}, process_id={}", addon_index,
+    const auto program_id = system.GetApplicationProcessProgramID();
+    const auto aoc_base_id = FileSys::GetAOCBaseTitleID(program_id);
+    const auto reconstructed_title_id =
+        aoc_base_id + static_cast<u64>(static_cast<u32>(addon_index));
+
+    LOG_WARNING(Service_AOC,
+                "PrepareAddOnContent: program_id={:016X}, aoc_base={:016X}, "
+                "addon_index={}, title_id={:016X}, process_id={}",
+                program_id, aoc_base_id, addon_index, reconstructed_title_id,
                 process_id.pid);
 
     R_SUCCEED();
