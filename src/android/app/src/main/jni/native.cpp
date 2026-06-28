@@ -234,6 +234,7 @@ void EmulationSession::InitializeSystem(bool reload) {
     }
 
     Core::Crypto::KeyManager::Instance().ReloadKeys();
+    Core::Crypto::KeyManager::Instance().PopulateTickets();
     LOG_INFO(Frontend, "InitializeSystem: keys_loaded_before_content={}",
              Core::Crypto::KeyManager::Instance().AreKeysLoaded());
 
