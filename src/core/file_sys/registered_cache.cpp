@@ -431,23 +431,61 @@ void RegisteredCache::ProcessFiles(const std::vector<NcaID>& ids, std::map<u64, 
     for (const auto& id : ids) {
         const auto file = GetFileAtID(id);
 
-        if (file == nullptr)
+        if (file == nullptr) {
+            LOG_WARNING(Service_FS, "RegisteredCache ProcessFiles: missing file for nca_id={}",
+                        Common::HexToString(id, false));
             continue;
+        }
         const auto nca = std::make_shared<NCA>(parser(file, id));
-        if (nca->GetStatus() != Loader::ResultStatus::Success ||
-            nca->GetType() != NCAContentType::Meta || nca->GetSubdirectories().empty()) {
+        if (nca->GetStatus() != Loader::ResultStatus::Success) {
+            LOG_WARNING(Service_FS,
+                        "RegisteredCache ProcessFiles: failed nca_id={}, status={}",
+                        Common::HexToString(id, false), static_cast<u16>(nca->GetStatus()));
+            continue;
+        }
+
+        const auto nca_type = nca->GetType();
+        if (nca_type != NCAContentType::Meta) {
+            LOG_INFO(Service_FS,
+                     "RegisteredCache ProcessFiles: skipped non-meta nca_id={}, title_id={:016X}, "
+                     "type={:02X}",
+                     Common::HexToString(id, false), nca->GetTitleId(), static_cast<u32>(nca_type));
+            continue;
+        }
+
+        if (nca->GetSubdirectories().empty()) {
+            LOG_WARNING(Service_FS,
+                        "RegisteredCache ProcessFiles: meta has no sections nca_id={}, "
+                        "title_id={:016X}",
+                        Common::HexToString(id, false), nca->GetTitleId());
             continue;
         }
 
         const auto section0 = nca->GetSubdirectories()[0];
+        bool found_cnmt = false;
 
         for (const auto& section0_file : section0->GetFiles()) {
             if (section0_file->GetExtension() != "cnmt")
                 continue;
 
-            out_meta.insert_or_assign(nca->GetTitleId(), CNMT(section0_file));
+            CNMT cnmt(section0_file);
+            LOG_INFO(Service_FS,
+                     "RegisteredCache ProcessFiles: parsed meta nca_id={}, title_id={:016X}, "
+                     "records={}",
+                     Common::HexToString(id, false), cnmt.GetTitleID(),
+                     cnmt.GetContentRecords().size());
+
+            out_meta.insert_or_assign(nca->GetTitleId(), std::move(cnmt));
             out_meta_id.insert_or_assign(nca->GetTitleId(), id);
+            found_cnmt = true;
             break;
+        }
+
+        if (!found_cnmt) {
+            LOG_WARNING(Service_FS,
+                        "RegisteredCache ProcessFiles: meta section lacks cnmt nca_id={}, "
+                        "title_id={:016X}",
+                        Common::HexToString(id, false), nca->GetTitleId());
         }
     }
 }
