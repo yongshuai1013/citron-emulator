@@ -73,7 +73,7 @@ static bool FollowsNcaIdFormat(std::string_view name) {
 static std::string GetRelativePathFromNcaID(const std::array<u8, 16>& nca_id, bool second_hex_upper,
                                             bool within_two_digit, bool cnmt_suffix) {
     if (!within_two_digit) {
-        const auto format_str = fmt::runtime(cnmt_suffix ? "{}.cnmt.nca" : "/{}.nca");
+        const auto format_str = fmt::runtime(cnmt_suffix ? "/{}.cnmt.nca" : "/{}.nca");
         return fmt::format(format_str, Common::HexToString(nca_id, second_hex_upper));
     }
 
