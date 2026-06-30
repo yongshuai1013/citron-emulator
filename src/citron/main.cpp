@@ -5392,7 +5392,7 @@ void GMainWindow::OnInstallDecryptionKeys() {
     // and re-populate the game list in the UI if the user has already added
     // game folders.
     Core::Crypto::KeyManager::Instance().ReloadKeys();
-    Core::Crypto::KeyManager::Instance().PopulateTickets();
+    Core::Crypto::KeyManager::Instance().ReloadTickets();
     system->GetFileSystemController().InitializeContentSystem(*vfs);
     game_list->PopulateAsync(UISettings::values.game_dirs);
 

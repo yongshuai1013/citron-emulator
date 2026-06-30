@@ -690,6 +690,10 @@ KeyManager::KeyManager() {
 }
 
 void KeyManager::ReloadKeys() {
+    ticket_databases_loaded = false;
+    common_tickets.clear();
+    personal_tickets.clear();
+
     // Initialize keys
     const auto citron_keys_dir = Common::FS::GetCitronPath(Common::FS::CitronPath::KeysDir);
 
@@ -1223,6 +1227,15 @@ void KeyManager::PopulateTickets() {
     for (const auto& ticket : tickets) {
         AddTicket(ticket);
     }
+}
+
+void KeyManager::ReloadTickets() {
+    ticket_databases_loaded = false;
+    common_tickets.clear();
+    personal_tickets.clear();
+
+    PopulateTickets();
+    SynthesizeTickets();
 }
 
 void KeyManager::SynthesizeTickets() {

@@ -829,7 +829,7 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
         return;
     }
 
-    Core::Crypto::KeyManager::Instance().PopulateTickets();
+    Core::Crypto::KeyManager::Instance().ReloadTickets();
 
     using CitronPath = Common::FS::CitronPath;
     const auto sdmc_dir_path = Common::FS::GetCitronPath(CitronPath::SDMCDir);
@@ -924,7 +924,7 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
 }
 
 void FileSystemController::RefreshExternalContentProvider() {
-    Core::Crypto::KeyManager::Instance().PopulateTickets();
+    Core::Crypto::KeyManager::Instance().ReloadTickets();
 
     auto vfs = system.GetFilesystem();
     std::vector<FileSys::VirtualDir> load_dirs;

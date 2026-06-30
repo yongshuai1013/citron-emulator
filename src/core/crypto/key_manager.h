@@ -283,6 +283,7 @@ public:
     void DeriveBase();
     void DeriveETicket(PartitionDataManager& data, const FileSys::ContentProvider& provider);
     void PopulateTickets();
+    void ReloadTickets();
     void SynthesizeTickets();
 
     void PopulateFromPartitionData(PartitionDataManager& data);
