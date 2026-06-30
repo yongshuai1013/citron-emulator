@@ -446,7 +446,6 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     UpdateWindowTitle();
 
     LOG_INFO(Frontend, "Registering system content providers...");
-    Core::Crypto::KeyManager::Instance().PopulateTickets();
     system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system->RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
                                     provider.get());
@@ -5392,7 +5391,6 @@ void GMainWindow::OnInstallDecryptionKeys() {
     // and re-populate the game list in the UI if the user has already added
     // game folders.
     Core::Crypto::KeyManager::Instance().ReloadKeys();
-    Core::Crypto::KeyManager::Instance().ReloadTickets();
     system->GetFileSystemController().InitializeContentSystem(*vfs);
     game_list->PopulateAsync(UISettings::values.game_dirs);
 
