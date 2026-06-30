@@ -311,6 +311,7 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     jauto android_keyboard = std::make_unique<Common::Android::SoftwareKeyboard::AndroidKeyboard>();
     m_software_keyboard = android_keyboard.get();
     m_system.SetShuttingDown(false);
+    Settings::values.swkbd_applet_mode.SetValue(Settings::AppletMode::HLE);
     m_system.ApplySettings();
     Settings::LogSettings();
     m_system.HIDCore().ReloadInputDevices();
