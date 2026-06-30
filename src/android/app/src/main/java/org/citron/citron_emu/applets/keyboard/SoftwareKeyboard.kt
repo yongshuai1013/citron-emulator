@@ -8,6 +8,7 @@ package org.citron.citron_emu.applets.keyboard
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
@@ -79,9 +80,10 @@ object SoftwareKeyboard {
                     return
                 }
 
-                // Keyboard was dismissed without a key event. Do not guess enter/cancel here.
+                // Keyboard was dismissed without a key event. Treat it as cancellation.
                 overlayView.visibility = previousVisibility
                 overlayView.alpha = previousAlpha
+                NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_BACK)
             }
         }, delayMs)
     }
