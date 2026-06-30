@@ -1436,6 +1436,8 @@ bool KeyManager::PersistTicket(const Ticket& ticket) {
 bool KeyManager::AddAndPersistTicket(const Ticket& ticket) {
     std::scoped_lock lock{key_mutex};
 
-    return AddTicket(ticket) && PersistTicket(ticket);
+    const bool added = AddTicket(ticket);
+    const bool persisted = PersistTicket(ticket);
+    return added && persisted;
 }
 } // namespace Core::Crypto
