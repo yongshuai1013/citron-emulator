@@ -181,6 +181,7 @@ void AndroidKeyboard::ShowInlineKeyboard(
              appear_parameters.enable_return_button, appear_parameters.disable_cancel_button);
 
     // Pivot to a new thread, as we cannot call GetEnvForThread() from a Fiber.
+    m_current_text = parameters.initial_text;
     m_is_inline_active = true;
     std::thread([&] {
         GetEnvForThread()->CallStaticVoidMethod(s_software_keyboard_class, s_swkbd_execute_inline,
