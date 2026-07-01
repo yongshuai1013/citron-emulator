@@ -38,6 +38,8 @@ public:
 
     void SubmitInlineKeyboardText(std::u16string submitted_text);
 
+    void ReplaceInlineKeyboardText(std::u16string submitted_text, s32 cursor_position);
+
     void SubmitInlineKeyboardInput(int key_code);
 
 private:
@@ -50,14 +52,15 @@ private:
 
     void SubmitNormalText(const ResultData& result) const;
 
-    Core::Frontend::KeyboardInitializeParameters parameters{};
+    mutable Core::Frontend::KeyboardInitializeParameters parameters{};
 
     mutable SubmitNormalCallback submit_normal_callback;
     mutable SubmitInlineCallback submit_inline_callback;
 
 private:
     mutable bool m_is_inline_active{};
-    std::u16string m_current_text;
+    mutable std::u16string m_current_text;
+    mutable s32 m_current_cursor_position{};
 };
 
 // Should be called in JNI_Load
